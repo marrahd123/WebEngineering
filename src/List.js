@@ -1,12 +1,22 @@
 import React, { Component } from "react";
+import Checkbox from "@material-ui/core/Checkbox";
+import DeleteForeverIcon from "@material-ui/icons/DeleteForever";
 
 export default class List extends Component {
-  renderItem = (text, i) => {
-    const { onClickItem } = this.props;
+  renderItem = (item, i) => {
+    const { onToggleTodo, onDeleteTodo } = this.props;
 
     return (
-      <div style={styles.item} onClick={() => onClickItem(i)}>
-        {text}
+      <div style={styles.item}>
+        <Checkbox
+          checked={item.completed}
+          onChange={() => onToggleTodo(item.id)}
+        />
+        <DeleteForeverIcon
+          style={styles.delete}
+          onClick={() => onDeleteTodo(item.id)}
+        />
+        {item.text}
       </div>
     );
   };
@@ -27,5 +37,9 @@ const styles = {
     backgroundColor: "whitesmoke",
     marginBottom: 5,
     padding: 15
+  },
+  delete: {
+    verticalAlign: -7,
+    paddingRight: 15
   }
 };

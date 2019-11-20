@@ -3,30 +3,47 @@ import React, { Component } from "react";
 import List from "./List";
 import Input from "./Input";
 import Title from "./Title";
+import Footer from "./Footer";
+import { VisibilityFilters } from "./constants";
 
-export default class App extends Component {
-  state = {
-    todos: ["Click to remove", "Learn React", "Write Code", "Ship App"]
-  };
+import { connect } from "react-redux";
+import { actionCreators } from "./TodoListRedux";
 
+const mapStateToProps = state => ({
+  todos: state.todos,
+  visibilityFilter: state.visibilityFilter
+});
+
+class App extends Component {
   onAddTodo = text => {
-    const { todos } = this.state;
-
-    this.setState({
-      todos: [text, ...todos]
-    });
+    const { dispatch } = this.props;
+    dispatch(actionCreators.add(text));
   };
 
-  onRemoveTodo = index => {
-    const { todos } = this.state;
+  onToggleTodo = index => {
+    const { dispatch } = this.props;
+    dispatch(actionCreators.toggle(index));
+  };
 
-    this.setState({
-      todos: todos.filter((todo, i) => i !== index)
-    });
+  onUpdateVisibilityFilter = visibility => {
+    const { dispatch } = this.props;
+    dispatch(actionCreators.setVisibilityFilter(visibility));
+  };
+
+  onDeleteTodo = index => {
+    const { dispatch } = this.props;
+    dispatch(actionCreators.remove(index));
   };
 
   render() {
-    const { todos } = this.state;
+    const { todos, visibilityFilter } = this.props;
+
+    let visibleTodos = todos;
+    if (visibilityFilter === VisibilityFilters.SHOW_ACTIVE) {
+      visibleTodos = todos.filter(todo => !todo.completed);
+    } else if (visibilityFilter === VisibilityFilters.SHOW_COMPLETED) {
+      visibleTodos = todos.filter(todo => todo.completed);
+    }
 
     return (
       <div style={styles.container}>
@@ -35,7 +52,15 @@ export default class App extends Component {
           placeholder={"Type a todo, then hit enter!"}
           onSubmitEditing={this.onAddTodo}
         />
-        <List list={todos} onClickItem={this.onRemoveTodo} />
+        <List
+          list={visibleTodos}
+          onToggleTodo={this.onToggleTodo}
+          onDeleteTodo={this.onDeleteTodo}
+        />
+        <Footer
+          currentFilter={this.props.visibilityFilter}
+          onUpdateVisibilityFilter={this.onUpdateVisibilityFilter}
+        />
       </div>
     );
   }
@@ -47,3 +72,5 @@ const styles = {
     flexDirection: "column"
   }
 };
+
+export default connect(mapStateToProps)(App);
