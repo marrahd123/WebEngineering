@@ -5,7 +5,10 @@ export const types = {
   ADD: "ADD",
   REMOVE: "REMOVE",
   TOGGLE: "TOGGLE",
-  SET_VISIBILITY_FILTER: "SET_VISIBILITY_FILTER"
+  SET_VISIBILITY_FILTER: "SET_VISIBILITY_FILTER",
+  FETCH_TODOS_PENDING: "FETCH_TODOS_PENDING",
+  FETCH_TODOS_SUCCESS: "FETCH_TODOS_SUCCESS",
+  FETCH_TODOS_ERROR: "FETCH_TODOS_ERROR"
 };
 
 // Helper functions to dispatch actions, optionally with payloads
@@ -21,17 +24,23 @@ export const actionCreators = {
   },
   setVisibilityFilter: visibility => {
     return { type: types.SET_VISIBILITY_FILTER, payload: visibility };
+  },
+  fetchTodosPending: () => {
+    return { type: types.FETCH_TODOS_PENDING };
+  },
+  fetchTodosSuccess: todos => {
+    return { type: types.FETCH_TODOS_SUCCESS, payload: todos };
+  },
+  fetchTodosError: error => {
+    return { type: types.FETCH_TODOS_ERROR, payload: error };
   }
 };
 
 // Initial state of the store
-var key = 0;
 const initialState = {
-  todos: [
-    { text: "eat", id: key++, completed: false },
-    { text: "drink", id: key++, completed: false },
-    { text: "be merry", id: key++, completed: false }
-  ],
+  todos: [],
+  pending: false,
+  error: null,
   visibilityFilter: VisibilityFilters.SHOW_ALL
 };
 
@@ -47,19 +56,34 @@ export const reducer = (state = initialState, action) => {
   const { type, payload } = action;
 
   switch (type) {
-    case types.ADD: {
+    case types.FETCH_TODOS_PENDING:
+      return {
+        ...state,
+        pending: true
+      };
+    case types.FETCH_TODOS_SUCCESS:
+      return {
+        ...state,
+        pending: false,
+        todos: action.payload
+      };
+    case types.FETCH_TODOS_ERROR:
+      return {
+        ...state,
+        pending: false,
+        error: action.error
+      };
+    case types.ADD:
       return {
         ...state,
         todos: [payload, ...todos]
       };
-    }
-    case types.REMOVE: {
+    case types.REMOVE:
       return {
         ...state,
         todos: todos.filter(todo => todo.id !== payload)
       };
-    }
-    case types.TOGGLE: {
+    case types.TOGGLE:
       return {
         ...state,
         todos: todos.map(todo => {
@@ -69,13 +93,11 @@ export const reducer = (state = initialState, action) => {
           };
         })
       };
-    }
-    case types.SET_VISIBILITY_FILTER: {
+    case types.SET_VISIBILITY_FILTER:
       return {
         ...state,
         visibilityFilter: payload
       };
-    }
     default:
       return state;
   }
