@@ -38,8 +38,11 @@ class App extends Component {
   componentDidMount() {
     const { dispatch } = this.props;
     dispatch(this.fetchTodos());
+      this.timer = setInterval(() => this.fetchTodos(), 5000);
   }
-
+  componentWillUnmount() {
+  this.timer = null;
+}
   onAddTodo = text => {
     const { dispatch } = this.props;
     dispatch(actionCreators.add(text));
