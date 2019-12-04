@@ -8,49 +8,48 @@ import { VisibilityFilters } from "./constants";
 
 import { connect } from "react-redux";
 import { actionCreators } from "./TodoListRedux";
+import { todosRef } from "./firebase";
 
 const mapStateToProps = state => ({
   todos: state.todos,
   visibilityFilter: state.visibilityFilter
 });
 
-const API_URL = "https://5c054cf66b84ee00137d2573.mockapi.io/api/todos";
-
 class App extends Component {
-  fetchTodos = () => {
-    return dispatch => {
-      dispatch(actionCreators.fetchTodosPending());
-      fetch(API_URL)
-        .then(res => res.json())
-        .then(res => {
-          if (res.error) {
-            throw res.error;
-          }
-          dispatch(actionCreators.fetchTodosSuccess(res));
-          return res.json();
-        })
-        .catch(error => {
-          dispatch(actionCreators.fetchTodosError(error));
+  fetchTodos = () => async dispatch => {
+    dispatch(actionCreators.fetchTodosPending());
+    todosRef.on("value", snapshot => {
+      let todos = snapshot.val();
+      console.log("snapshot:");
+      console.log(todos);
+      let newTodos = [];
+      for (let key in todos) {
+        newTodos.push({
+          id: key,
+          text: todos[key].text,
+          completed: todos[key].completed
         });
-    };
+      }
+      console.log("newTodos:");
+      console.log(newTodos);
+      dispatch(actionCreators.fetchTodosSuccess(newTodos));
+    });
   };
 
   componentDidMount() {
     const { dispatch } = this.props;
     dispatch(this.fetchTodos());
-      this.timer = setInterval(() => this.fetchTodos(), 5000);
   }
-  componentWillUnmount() {
-  this.timer = null;
-}
+
   onAddTodo = text => {
     const { dispatch } = this.props;
-    dispatch(actionCreators.add(text));
+    dispatch(actionCreators.add({ text, completed: false }));
   };
 
-  onToggleTodo = index => {
+  onToggleTodo = todo => {
+    todo.completed = !todo.completed;
     const { dispatch } = this.props;
-    dispatch(actionCreators.toggle(index));
+    dispatch(actionCreators.update(todo));
   };
 
   onUpdateVisibilityFilter = visibility => {
@@ -58,9 +57,9 @@ class App extends Component {
     dispatch(actionCreators.setVisibilityFilter(visibility));
   };
 
-  onDeleteTodo = index => {
+  onDeleteTodo = id => {
     const { dispatch } = this.props;
-    dispatch(actionCreators.remove(index));
+    dispatch(actionCreators.remove(id));
   };
 
   render() {

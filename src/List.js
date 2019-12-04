@@ -10,7 +10,7 @@ export default class List extends Component {
       <div style={styles.item} key={item.id}>
         <Checkbox
           checked={item.completed}
-          onChange={() => onToggleTodo(item.id)}
+          onChange={() => onToggleTodo(item)}
         />
         <DeleteForeverIcon
           style={styles.delete}
